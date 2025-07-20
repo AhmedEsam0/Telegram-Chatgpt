@@ -1,4 +1,3 @@
-# main.py
 from fastapi import FastAPI, Request
 import telebot
 import requests
@@ -21,7 +20,15 @@ def ask_chatgpt(message):
             {"role": "user", "content": message}
         ]
     }
+
     response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data)
+
+    if response.status_code != 200:
+        print("🔴 OpenAI API Error:")
+        print("Status code:", response.status_code)
+        print("Response text:", response.text)
+        raise Exception("OpenAI API failed")
+
     result = response.json()
     return result["choices"][0]["message"]["content"]
 
@@ -31,6 +38,7 @@ def handle_message(message):
         reply = ask_chatgpt(message.text)
         bot.reply_to(message, reply)
     except Exception as e:
+        print("🔴 ERROR:", e)
         bot.reply_to(message, "حصل خطأ، جرّب تاني")
 
 @app.post("/")

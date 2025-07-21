@@ -21,10 +21,9 @@ for var_name, var_value in required_vars.items():
         raise RuntimeError(f"⛔ متغير البيئة {var_name} غير موجود!")
 
 # 2. 🤖 تهيئة البوت
-bot = AsyncTeleBot(
+bot = bot = AsyncTeleBot(
     required_vars["TELEGRAM_TOKEN"],
-    parse_mode="HTML",
-    threaded=False
+    parse_mode="HTML"
 )
 
 # 3. 🚀 تهيئة FastAPI

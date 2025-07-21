@@ -13,15 +13,16 @@ required_vars = {
     "TELEGRAM_TOKEN": os.getenv("TELEGRAM_TOKEN"),
     "OPENAI_KEY": os.getenv("OPENAI_KEY"),
     "RAILWAY_PUBLIC_URL": os.getenv("RAILWAY_PUBLIC_URL"),
-    "ADMIN_PASSWORD": os.getenv("ADMIN_PASSWORD")
+    "ADMIN_PASSWORD": os.getenv("ADMIN_PASSWORD"),
+    "CHANNEL_USERNAME": os.getenv("CHANNEL_USERNAME")
 }
 
 for var_name, var_value in required_vars.items():
-    if not var_value:
+    if not var_value and var_name != "CHANNEL_USERNAME":
         raise RuntimeError(f"⛔ متغير البيئة {var_name} غير موجود!")
 
 # 2. 🤖 تهيئة البوت
-bot = bot = AsyncTeleBot(
+bot = AsyncTeleBot(
     required_vars["TELEGRAM_TOKEN"],
     parse_mode="HTML"
 )
@@ -106,14 +107,18 @@ async def startup_events():
         me = await bot.get_me()
         print(f"🤖 تم تشغيل البوت: @{me.username}")
 
-        webhook_url = f"{required_vars['RAILWAY_PUBLIC_URL']}/webhook"
+        webhook_url = f"{required_vars['RAILWAY_PUBLIC_URL'].rstrip('/')}/webhook"
         await bot.remove_webhook()
         await asyncio.sleep(1)
         await bot.set_webhook(url=webhook_url, max_connections=50)
         print(f"🌐 تم تعيين Webhook: {webhook_url}")
 
-        if os.getenv("CHANNEL_USERNAME"):
-            await bot.send_message(f"@{os.getenv('CHANNEL_USERNAME')}", "✅ تم تشغيل البوت بنجاح!")
+        # إرسال رسالة بدء التشغيل إذا تم تحديد القناة بشكل صحيح
+        if required_vars["CHANNEL_USERNAME"]:
+            try:
+                await bot.send_message(f"@{required_vars['CHANNEL_USERNAME']}", "✅ تم تشغيل البوت بنجاح!")
+            except Exception as e:
+                print(f"⚠️ لم يتم إرسال رسالة بدء التشغيل للقناة: {str(e)}")
 
     except Exception as e:
         print(f"🔥 فشل تشغيل البوت: {str(e)}")
@@ -150,11 +155,11 @@ async def send_announcement(news: NewsItem):
     if news.password != required_vars["ADMIN_PASSWORD"]:
         raise HTTPException(401, "كلمة السر غير صحيحة")
 
-    if not os.getenv("CHANNEL_USERNAME"):
+    if not required_vars["CHANNEL_USERNAME"]:
         raise HTTPException(501, "إرسال الإعلانات غير مفعل")
 
     try:
-        await bot.send_message(f"@{os.getenv('CHANNEL_USERNAME')}", news.text)
+        await bot.send_message(f"@{required_vars['CHANNEL_USERNAME']}", news.text)
         return {"status": "success", "message": "تم إرسال الإعلان"}
     except Exception as e:
         raise HTTPException(500, f"فشل الإرسال: {str(e)}")

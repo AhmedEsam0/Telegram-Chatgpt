@@ -1,5 +1,7 @@
-fastapi
-pyTelegramBotAPI==4.15.4
-uvicorn
-python-dotenv
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0
+python-dotenv>=1.0.0
+httpx>=0.24.0
+pyTelegramBotAPI[async]>=4.15.4
+pydantic>=1.10.0
 requests

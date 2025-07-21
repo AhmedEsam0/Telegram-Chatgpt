@@ -1,4 +1,5 @@
 fastapi
+pyTelegramBotAPI==4.15.4
 uvicorn
+python-dotenv
 requests
-pyTelegramBotAPI
